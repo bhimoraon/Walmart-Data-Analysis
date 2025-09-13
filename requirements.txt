@@ -1,4 +1,3 @@
 Pandas
 pymysql
 sqlalchemy
-psycopy2
