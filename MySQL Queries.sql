@@ -38,18 +38,13 @@ FROM (
     SELECT 
         branch,
         category,
-        avg_rating,
-        RANK() OVER(PARTITION BY branch ORDER BY avg_rating DESC) AS rnk
-    FROM (
-        SELECT 
-            branch, 
-            category,
-            AVG(rating) AS avg_rating
-        FROM walmart
-        GROUP BY branch, category
-    ) t
+        AVG(rating) AS avg_rating,
+        RANK() OVER (PARTITION BY branch ORDER BY AVG(rating) DESC) AS rnk
+    FROM walmart
+    GROUP BY branch, category
 ) ranked
 WHERE rnk = 1;
+
 
 
 
@@ -58,19 +53,14 @@ SELECT branch, day_name, no_transactions
 FROM (
     SELECT 
         branch,
-        day_name,
-        no_transactions,
-        RANK() OVER(PARTITION BY branch ORDER BY no_transactions DESC) AS rnk
-    FROM (
-        SELECT 
-            branch,
-            DAYNAME(STR_TO_DATE(date, '%d/%m/%Y')) AS day_name,
-            COUNT(*) AS no_transactions
-        FROM walmart
-        GROUP BY branch, day_name
-    ) t
+        DAYNAME(STR_TO_DATE(date, '%d/%m/%Y')) AS day_name,
+        COUNT(*) AS no_transactions,
+        RANK() OVER(PARTITION BY branch ORDER BY COUNT(*) DESC) AS rnk
+    FROM walmart
+    GROUP BY branch, day_name
 ) ranked
 WHERE rnk = 1;
+
 
 -- Q4: Calculate the total quantity of items sold per payment method
 SELECT 
@@ -103,17 +93,15 @@ WITH cte AS (
     SELECT 
         branch,
         payment_method,
-        total_trans,
-        RANK() OVER(PARTITION BY branch ORDER BY total_trans DESC) AS rnk
-    FROM (
-        SELECT branch, payment_method, COUNT(*) AS total_trans
-         FROM walmart
-        GROUP BY branch, payment_method
-    ) t
+        COUNT(*) AS total_trans,
+        RANK() OVER(PARTITION BY branch ORDER BY COUNT(*) DESC) AS rnk
+    FROM walmart
+    GROUP BY branch, payment_method
 )
 SELECT branch, payment_method AS preferred_payment_method
 FROM cte
 WHERE rnk = 1;
+
 
 
 -- Q8: Categorize sales into Morning, Afternoon, and Evening shifts
